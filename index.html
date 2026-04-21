@@ -476,7 +476,22 @@ async function loadDemandas() {
       if (keys.length > 0) rows = Array.isArray(data[keys[0]]) ? data[keys[0]] : [data];
     }
 
-    demandas = rows.filter(r => r && (r.descricao || r.descrição || r['descricao (B)']));
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    demandas = rows.filter(r => {
+      if (!r || !(r.descricao || r.descrição || r['descricao (B)'])) return false;
+      const revisao = r.revisao_em || r['revisao_em (I)'];
+      if (!revisao) return true;
+      // Parse DD/MM/YYYY or YYYY-MM-DD
+      let d;
+      if (revisao.includes('/')) {
+        const [day, month, year] = revisao.split('/');
+        d = new Date(year, month - 1, day);
+      } else {
+        d = new Date(revisao);
+      }
+      d.setHours(0,0,0,0);
+      return d <= hoje;
+    });
 
     if (demandas.length === 0) {
       showEmpty();
