@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Demandas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --text: #e8e4dc;
+    --text-muted: #6b6760;
+    --accent: #c8b89a;
+    --accent-bright: #e8d5b0;
+    --danger: #c0654a;
+    --success: #6a9e7f;
+    --warning: #c9a84c;
+    --info: #5a8fa8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  header {
+    width: 100%;
+    max-width: 680px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--accent-bright);
+    letter-spacing: -0.02em;
+  }
+
+  header .date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .progress-bar {
+    width: 100%;
+    max-width: 680px;
+    margin-bottom: 32px;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .progress-track {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 680px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 36px;
+    animation: fadeUp 0.4s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--accent-bright);
+    line-height: 1.3;
+    margin-bottom: 24px;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 20px;
+    background: var(--surface2);
+    border-radius: 3px;
+  }
+
+  .meta-item label {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .meta-item span {
+    font-size: 0.8rem;
+    color: var(--text);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .badge-sim { background: rgba(106, 158, 127, 0.2); color: var(--success); }
+  .badge-nao { background: rgba(107, 103, 96, 0.2); color: var(--text-muted); }
+  .badge-null { background: rgba(107, 103, 96, 0.15); color: var(--text-muted); }
+
+  .question {
+    margin-bottom: 28px;
+  }
+
+  .question h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  .options {
+    display: grid;
+    gap: 10px;
+  }
+
+  .options.two-col { grid-template-columns: 1fr 1fr; }
+  .options.four-col { grid-template-columns: 1fr 1fr; }
+
+  .option-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    line-height: 1.4;
+  }
+
+  .option-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-bright);
+    background: rgba(200, 184, 154, 0.05);
+  }
+
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: rgba(200, 184, 154, 0.1);
+    color: var(--accent-bright);
+  }
+
+  .option-btn .opt-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .option-btn.selected .opt-label { color: var(--accent); }
+
+  input[type="text"], input[type="date"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-top: 8px;
+  }
+
+  input[type="text"]:focus, input[type="date"]:focus {
+    border-color: var(--accent);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+  }
+
+  .field-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 16px;
+    display: block;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 3px;
+    padding: 14px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover { background: var(--accent-bright); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
+
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 80px 0;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--text-muted);
+  }
+
+  .empty-state .icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    opacity: 0.4;
+  }
+
+  .empty-state h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .empty-state p {
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .summary {
+    width: 100%;
+    max-width: 680px;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .summary h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--accent-bright);
+    margin-bottom: 32px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .summary-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .summary-item .number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.5rem;
+    color: var(--accent);
+    display: block;
+  }
+
+  .summary-item .label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+
+  .step-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--success); }
+
+  .error-msg {
+    background: rgba(192, 101, 74, 0.1);
+    border: 1px solid rgba(192, 101, 74, 0.3);
+    border-radius: 3px;
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    color: var(--danger);
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Processamento Diário</h1>
+  <span class="date" id="current-date"></span>
+</header>
+
+<div class="progress-bar" id="progress-bar" style="display:none">
+  <div class="progress-info">
+    <span id="progress-text">0 de 0 demandas</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<div id="app" style="width:100%;max-width:680px"></div>
+
+<script>
+const WEBHOOK_GET = 'https://hook.us2.make.com/vyiiqlfgx86oeme75l19goeb96cpzm85';
+const WEBHOOK_POST = 'https://hook.us2.make.com/opeaq5ms5jdwfmvotvencv3tcvdmjsei';
+
+let demandas = [];
+let currentIndex = 0;
+let summary = { concluida: 0, execucao: 0, acompanhamento: 0, adiada: 0 };
+
+const app = document.getElementById('app');
+
+// Set date
+const now = new Date();
+document.getElementById('current-date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+function showLoading(msg = 'Carregando demandas') {
+  app.innerHTML = `<div class="loading"><div class="spinner"></div><span>${msg}</span></div>`;
+}
+
+function updateProgress() {
+  const bar = document.getElementById('progress-bar');
+  if (demandas.length === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  const pct = Math.round((currentIndex / demandas.length) * 100);
+  document.getElementById('progress-text').textContent = `${currentIndex} de ${demandas.length} demanda${demandas.length > 1 ? 's' : ''}`;
+  document.getElementById('progress-pct').textContent = `${pct}%`;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+async function loadDemandas() {
+  showLoading();
+  try {
+    const res = await fetch(WEBHOOK_GET);
+    const data = await res.json();
+
+    // Normalize response — Make may return array or object
+    let rows = [];
+    if (Array.isArray(data)) {
+      rows = data;
+    } else if (data && data.values) {
+      rows = data.values;
+    } else if (data && typeof data === 'object') {
+      // Make bundles: try to extract rows
+      const keys = Object.keys(data);
+      if (keys.length > 0) rows = Array.isArray(data[keys[0]]) ? data[keys[0]] : [data];
+    }
+
+    demandas = rows.filter(r => r && (r.descricao || r.descrição || r['descricao (B)']));
+
+    if (demandas.length === 0) {
+      showEmpty();
+    } else {
+      currentIndex = 0;
+      updateProgress();
+      showDemanda();
+    }
+  } catch (e) {
+    app.innerHTML = `<div class="card"><div class="card-label">Erro de conexão</div><div class="card-title">Não foi possível carregar as demandas.</div><div class="error-msg">${e.message}</div><div class="actions"><button class="btn-primary" onclick="loadDemandas()">Tentar novamente</button></div></div>`;
+  }
+}
+
+function showEmpty() {
+  document.getElementById('progress-bar').style.display = 'none';
+  app.innerHTML = `
+    <div class="card empty-state">
+      <div class="icon">✦</div>
+      <h2>Caixa de entrada limpa</h2>
+      <p>Não há demandas pendentes para processar hoje.</p>
+    </div>`;
+}
+
+function getDemandaField(d, ...keys) {
+  for (const k of keys) {
+    if (d[k] !== undefined && d[k] !== null && d[k] !== '') return d[k];
+  }
+  return null;
+}
+
+function badge(val) {
+  if (!val || val === 'null') return `<span class="badge badge-null">—</span>`;
+  if (val === 'sim') return `<span class="badge badge-sim">sim</span>`;
+  return `<span class="badge badge-nao">${val}</span>`;
+}
+
+function showDemanda() {
+  if (currentIndex >= demandas.length) { showSummary(); return; }
+  const d = demandas[currentIndex];
+  const desc = getDemandaField(d, 'descricao', 'descrição', 'descricao (B)') || 'Sem descrição';
+  const prazo = getDemandaField(d, 'prazo', 'prazo (C)');
+  const urgencia = getDemandaField(d, 'urgencia', 'urgencia (D)');
+  const importancia = getDemandaField(d, 'importancia', 'importancia (E)');
+  const rowNum = getDemandaField(d, 'rowNumber', 'id (A)', 'id') || (currentIndex + 2);
+
+  const dots = demandas.map((_, i) =>
+    `<div class="step-dot ${i < currentIndex ? 'done' : i === currentIndex ? 'active' : ''}"></div>`
+  ).join('');
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="step-indicator">${dots}</div>
+      <div class="card-label">Demanda ${currentIndex + 1} de ${demandas.length}</div>
+      <div class="card-title">${desc}</div>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <label>Prazo</label>
+          <span>${prazo || '—'}</span>
+        </div>
+        <div class="meta-item">
+          <label>Urgência</label>
+          ${badge(urgencia)}
+        </div>
+        <div class="meta-item">
+          <label>Importância</label>
+          ${badge(importancia)}
+        </div>
+      </div>
+
+      <div class="question" id="step-container"></div>
+      <div id="error-area"></div>
+      <div class="actions" id="actions-area"></div>
+    </div>`;
+
+  showStep2min(d, desc, prazo, urgencia, importancia, rowNum);
+}
+
+function showStep2min(d, desc, prazo, urgencia, importancia, rowNum) {
+  document.getElementById('step-container').innerHTML = `
+    <h3>Essa demanda leva menos de 2 minutos?</h3>
+    <div class="options two-col">
+      <button class="option-btn" onclick="select2min(this, true)"><span class="opt-label">Sim</span>Executar agora e concluir</button>
+      <button class="option-btn" onclick="select2min(this, false)"><span class="opt-label">Não</span>Priorizar para depois</button>
+    </div>`;
+  document.getElementById('actions-area').innerHTML = '';
+}
+
+function select2min(btn, isFast) {
+  document.querySelectorAll('#step-container .option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if (isFast) {
+    showStepComunicar('concluida');
+  } else {
+    showStepEisenhower();
+  }
+}
+
+function showStepEisenhower() {
+  document.getElementById('step-container').innerHTML += `
+    <div class="divider"></div>
+    <div class="question" id="eisenhower-step">
+      <h3>Qual o quadrante desta demanda?</h3>
+      <div class="options four-col">
+        <button class="option-btn" onclick="selectQuadrante(this, 'I')"><span class="opt-label">Quadrante I</span>Urgente + Importante</button>
+        <button class="option-btn" onclick="selectQuadrante(this, 'II')"><span class="opt-label">Quadrante II</span>Não urgente + Importante</button>
+        <button class="option-btn" onclick="selectQuadrante(this, 'III')"><span class="opt-label">Quadrante III</span>Urgente + Não importante</button>
+        <button class="option-btn" onclick="selectQuadrante(this, 'IV')"><span class="opt-label">Quadrante IV</span>Não urgente + Não importante</button>
+      </div>
+    </div>`;
+}
+
+function selectQuadrante(btn, q) {
+  document.querySelectorAll('#eisenhower-step .option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window._quadrante = q;
+  showStepDestino();
+}
+
+function showStepDestino() {
+  const existing = document.getElementById('destino-step');
+  if (existing) existing.remove();
+
+  const div = document.createElement('div');
+  div.id = 'destino-step';
+  div.innerHTML = `
+    <div class="divider"></div>
+    <div class="question">
+      <h3>Você vai executar ou delegar?</h3>
+      <div class="options two-col">
+        <button class="option-btn" onclick="selectDestino(this, 'execucao')"><span class="opt-label">Executar</span>Você mesmo irá realizar</button>
+        <button class="option-btn" onclick="selectDestino(this, 'acompanhamento')"><span class="opt-label">Delegar</span>Outra pessoa irá realizar</button>
+        <button class="option-btn" onclick="selectDestino(this, 'adiada')"><span class="opt-label">Adiar</span>Reavaliar numa data futura</button>
+      </div>
+    </div>`;
+  document.getElementById('step-container').appendChild(div);
+}
+
+function selectDestino(btn, destino) {
+  document.querySelectorAll('#destino-step .option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window._destino = destino;
+
+  const existing = document.getElementById('extra-fields');
+  if (existing) existing.remove();
+
+  const div = document.createElement('div');
+  div.id = 'extra-fields';
+
+  if (destino === 'execucao') {
+    div.innerHTML = `
+      <div class="divider"></div>
+      <label class="field-label">Prazo de execução</label>
+      <input type="date" id="field-prazo" />
+      <label class="field-label">Projeto relacionado (opcional)</label>
+      <input type="text" id="field-projeto" placeholder="Nome do projeto" />`;
+  } else if (destino === 'acompanhamento') {
+    div.innerHTML = `
+      <div class="divider"></div>
+      <label class="field-label">Delegar para</label>
+      <input type="text" id="field-delegado" placeholder="Nome da pessoa" />
+      <label class="field-label">Prazo</label>
+      <input type="date" id="field-prazo" />`;
+  } else if (destino === 'adiada') {
+    div.innerHTML = `
+      <div class="divider"></div>
+      <label class="field-label">Reavaliar em</label>
+      <input type="date" id="field-revisao" />`;
+  }
+
+  document.getElementById('step-container').appendChild(div);
+  showStepComunicar(destino);
+}
+
+function showStepComunicar(destino) {
+  window._destino = destino;
+  const existing = document.getElementById('comunicar-step');
+  if (existing) existing.remove();
+
+  const div = document.createElement('div');
+  div.id = 'comunicar-step';
+  div.innerHTML = `
+    <div class="divider"></div>
+    <div class="question">
+      <h3>Precisa comunicar stakeholders?</h3>
+      <div class="options two-col">
+        <button class="option-btn" onclick="selectComunicar(this, true)"><span class="opt-label">Sim</span>Definir destinatários</button>
+        <button class="option-btn" onclick="selectComunicar(this, false)"><span class="opt-label">Não</span>Sem comunicação</button>
+      </div>
+    </div>`;
+  document.getElementById('step-container').appendChild(div);
+  document.getElementById('actions-area').innerHTML = '';
+}
+
+function selectComunicar(btn, sim) {
+  document.querySelectorAll('#comunicar-step .option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window._comunicar = sim ? 'sim' : 'não';
+
+  const existing = document.getElementById('stakeholders-field');
+  if (existing) existing.remove();
+
+  if (sim) {
+    const div = document.createElement('div');
+    div.id = 'stakeholders-field';
+    div.innerHTML = `
+      <label class="field-label">Para quem comunicar</label>
+      <input type="text" id="field-stakeholders" placeholder="Nome(s) ou e-mail(s)" />`;
+    document.getElementById('step-container').appendChild(div);
+  }
+
+  showConfirmButton();
+}
+
+function showConfirmButton() {
+  document.getElementById('actions-area').innerHTML = `
+    <button class="btn-secondary" onclick="skipDemanda()">Pular</button>
+    <button class="btn-primary" id="btn-confirm" onclick="confirmar()">Confirmar decisão →</button>`;
+}
+
+function skipDemanda() {
+  currentIndex++;
+  updateProgress();
+  showDemanda();
+}
+
+async function confirmar() {
+  const d = demandas[currentIndex];
+  const destino = window._destino;
+  const quadrante = window._quadrante || null;
+  const comunicar = window._comunicar || 'não';
+
+  const rowNum = getDemandaField(d, 'rowNumber', 'id (A)', 'id') || (currentIndex + 2);
+  const desc = getDemandaField(d, 'descricao', 'descrição', 'descricao (B)') || '';
+
+  let prazo = getDemandaField(d, 'prazo', 'prazo (C)') || null;
+  let delegado = null;
+  let projeto = null;
+  let revisao = null;
+  let stakeholders = document.getElementById('field-stakeholders')?.value || '';
+
+  if (destino === 'execucao') {
+    prazo = document.getElementById('field-prazo')?.value || prazo;
+    projeto = document.getElementById('field-projeto')?.value || null;
+  } else if (destino === 'acompanhamento') {
+    delegado = document.getElementById('field-delegado')?.value || null;
+    prazo = document.getElementById('field-prazo')?.value || prazo;
+  } else if (destino === 'adiada') {
+    revisao = document.getElementById('field-revisao')?.value || null;
+  }
+
+  if (destino === 'acompanhamento' && !delegado) {
+    document.getElementById('error-area').innerHTML = `<div class="error-msg">Informe para quem delegar.</div>`;
+    return;
+  }
+
+  if (destino === 'adiada' && !revisao) {
+    document.getElementById('error-area').innerHTML = `<div class="error-msg">Informe a data para reavaliar.</div>`;
+    return;
+  }
+
+  document.getElementById('error-area').innerHTML = '';
+  document.getElementById('btn-confirm').disabled = true;
+  document.getElementById('btn-confirm').textContent = 'Salvando...';
+
+  const payload = {
+    id: getDemandaField(d, 'id', 'id (A)') || String(Date.now()),
+    destino,
+    descricao: desc,
+    quadrante,
+    prazo,
+    comunicar,
+    stakeholders,
+    rowNumber: parseInt(rowNum) || (currentIndex + 2),
+    delegado_para: delegado,
+    projeto,
+    revisao_em: revisao
+  };
+
+  try {
+    await fetch(WEBHOOK_POST, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    summary[destino] = (summary[destino] || 0) + 1;
+    currentIndex++;
+    updateProgress();
+
+    // Reset state
+    window._destino = null;
+    window._quadrante = null;
+    window._comunicar = null;
+
+    showDemanda();
+  } catch (e) {
+    document.getElementById('error-area').innerHTML = `<div class="error-msg">Erro ao salvar: ${e.message}</div>`;
+    document.getElementById('btn-confirm').disabled = false;
+    document.getElementById('btn-confirm').textContent = 'Confirmar decisão →';
+  }
+}
+
+function showSummary() {
+  document.getElementById('progress-bar').style.display = 'none';
+  const total = Object.values(summary).reduce((a, b) => a + b, 0);
+  app.innerHTML = `
+    <div class="summary">
+      <h2>Processamento concluído ✦</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="number">${summary.concluida || 0}</span>
+          <span class="label">Concluídas agora</span>
+        </div>
+        <div class="summary-item">
+          <span class="number">${summary.execucao || 0}</span>
+          <span class="label">Em execução</span>
+        </div>
+        <div class="summary-item">
+          <span class="number">${summary.acompanhamento || 0}</span>
+          <span class="label">Delegadas</span>
+        </div>
+        <div class="summary-item">
+          <span class="number">${summary.adiada || 0}</span>
+          <span class="label">Adiadas</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="location.reload()">Novo processamento</button>
+      </div>
+    </div>`;
+}
+
+// Init
+loadDemandas();
+</script>
+</body>
+</html>
