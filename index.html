@@ -464,24 +464,26 @@ async function loadDemandas() {
     const res = await fetch(WEBHOOK_GET);
     const data = await res.json();
 
-    // Normalize response — Make may return array or object
-    let rows = [];
-    if (Array.isArray(data)) {
-      rows = data;
-    } else if (data && data.values) {
-      rows = data.values;
-    } else if (data && typeof data === 'object') {
-      // Make bundles: try to extract rows
-      const keys = Object.keys(data);
-      if (keys.length > 0) rows = Array.isArray(data[keys[0]]) ? data[keys[0]] : [data];
-    }
+    // Make returns numeric keys: 0=id, 1=descricao, 2=prazo, 3=urgencia, 4=importancia, 5=origem, 6=data_criacao, 7=status, 8=revisao_em
+    let raw = Array.isArray(data) ? data : [data];
+    let rows = raw.map(r => ({
+      id: r.id || r['0'] || '',
+      descricao: r.descricao || r['1'] || '',
+      prazo: r.prazo || r['2'] || '',
+      urgencia: r.urgencia || r['3'] || '',
+      importancia: r.importancia || r['4'] || '',
+      origem: r.origem || r['5'] || '',
+      data_criacao: r.data_criacao || r['6'] || '',
+      status: r.status || r['7'] || '',
+      revisao_em: r.revisao_em || r['8'] || '',
+      rowNumber: r.rowNumber || r['__ROW_NUMBER__'] || ''
+    }));
 
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     demandas = rows.filter(r => {
-      if (!r || !(r.descricao || r.descrição || r['descricao (B)'])) return false;
-      const revisao = r.revisao_em || r['revisao_em (I)'];
+      if (!r.descricao) return false;
+      const revisao = r.revisao_em;
       if (!revisao) return true;
-      // Parse DD/MM/YYYY or YYYY-MM-DD
       let d;
       if (revisao.includes('/')) {
         const [day, month, year] = revisao.split('/');
